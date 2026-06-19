@@ -78,6 +78,9 @@ def _verify_doc_owner(db, doc: Document, user: str):
     the session join for any not-yet-backfilled legacy row.
     """
     if user is None:
+        from src.auth_helpers import _auth_disabled
+        if _auth_disabled():
+            return  # Single-user / no-auth mode: allow access
         raise HTTPException(403, "Authentication required")
     if doc.owner is not None:
         if doc.owner != user:
