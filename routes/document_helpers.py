@@ -12,6 +12,7 @@ from pydantic import BaseModel
 
 from core.database import Document, DocumentVersion
 from core.database import Session as DbSession
+from src.auth_helpers import _auth_disabled
 from src.upload_handler import UploadHandler
 
 logger = logging.getLogger(__name__)
@@ -78,7 +79,6 @@ def _verify_doc_owner(db, doc: Document, user: str):
     the session join for any not-yet-backfilled legacy row.
     """
     if user is None:
-        from src.auth_helpers import _auth_disabled
         if _auth_disabled():
             return  # Single-user / no-auth mode: allow access
         raise HTTPException(403, "Authentication required")
@@ -107,7 +107,6 @@ def _owner_session_filter(q, user):
     by the time this filter is live there are no NULL-owner rows to leak;
     we therefore match the owner strictly for authenticated callers."""
     if not user:
-        from src.auth_helpers import _auth_disabled
         if user == "" or _auth_disabled():
             return q
         return q.filter(False)
