@@ -610,8 +610,12 @@ def _is_remote_endpoint(base_url: str) -> bool:
         ip = ipaddress.ip_address(host)
         return not (ip.is_loopback or ip.is_private)
     except ValueError:
-        pass  # not an IP literal -- treat as remote hostname
-    return not _is_tailscale_net(host)
+        pass  # not an IP literal -- treat as a remote hostname
+    # A bare hostname can't be statically classified as Tailscale/mDNS
+    # without a DNS lookup; treat any non-IP hostname as remote. Its
+    # reachability was already confirmed by /v1/models, so skipping the
+    # per-model chat probe is the safe (non-billing) call.
+    return True
 
 
 def _resolve_probe_key(ep) -> Optional[str]:
